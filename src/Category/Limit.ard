@@ -509,6 +509,7 @@
   \func map {z : C} (g : Hom z y) : Hom (pullback f g) x => pbProj1 {pullback f g}
 
 \meta terminal-obj C => Product {Empty} {C} absurd
+\meta initial-obj C => terminal-obj (Precat.op {C})
 
 \func terminal-obj-iso {C : Precat} (a b : terminal-obj C) : Iso {C} {a} {b}
 \cowith
@@ -517,7 +518,12 @@
   | hinv_f => tupleEq (\case __)
   | f_hinv => tupleEq (\case __)
 
+\func initial-obj-iso {C : Precat} (a b : initial-obj C) : Iso {C} {a} {b}
+  => Iso.op {terminal-obj-iso {Precat.op {C}} b a}
+
 \func terminalMap' {C : Precat} {t : terminal-obj C} {x : C} : Hom x t => tupleMap (\case __)
+
+\func initialMap' {C : Precat} {i : initial-obj C} {x : C} : Hom i x => terminalMap' {Precat.op {C}}
 
 \func isTerminal {C : Precat} (a : C) (e : \Pi (b : C) -> Contr (Hom b a))
   : terminal-obj C a
@@ -528,6 +534,9 @@
     | tupleEq {Z} {p} {q} _ => isContr=>isProp (e Z) p q
 
 \lemma terminal-unique' {C : Precat} {terminal : terminal-obj C} {x : C} {f g : Hom x terminal} : f = g => tupleEq (\case __)
+
+\lemma initial-unique' {C : Precat} {initial : initial-obj C} {x : C} {f g : Hom initial x} : f = g
+  => terminal-unique' {Precat.op {C}}
 
 \func terminal-prop {C : Cat} : isProp (terminal-obj C)
   => \lam a a' => exts (C.univalence.ret (unfold $ terminal-obj-iso a a'), \lam j => absurd j, \lam {Z} f => terminal-unique')
@@ -543,6 +552,14 @@
     \cowith
       | hinv => terminalMap
       | hinv_f => terminal-unique
+}
+
+\class PrecatWithInitial \extends Precat {
+  | initial : terminal-obj (op {\this})
+
+  \func initialMap {x : Ob} : Hom initial x => terminalMap' {op {\this}}
+  \lemma initial-unique {x : Ob} {f g : Hom initial x} : f = g
+    => terminal-unique' {op {\this}}
 }
 
 \class PrecatWithBprod \extends Precat {
